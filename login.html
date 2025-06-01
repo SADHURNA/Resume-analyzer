@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Porto</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #fff 50%, #f59e0b 50%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            height: 600px;
+            display: flex;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            background-color: white;
+        }
+        .left-panel {
+            flex: 1;
+            background: #f59e0b;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+        .right-panel {
+            flex: 1;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        .login-box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 350px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .login-box h2 {
+            color: #f59e0b;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .divider {
+            margin: 15px 0;
+            font-size: 12px;
+            color: #999;
+        }
+        form input[type="text"],
+        form input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+        }
+        .options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 10px;
+            background: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .login-btn:hover {
+            background: #d97706;
+        }
+        .footer-text {
+            font-size: 12px;
+            margin-top: 15px;
+        }
+        .footer-text a {
+            color: #f59e0b;
+            text-decoration: none;
+        }
+        .flash-message {
+            margin-bottom: 10px;
+            color: red;
+            font-size: 13px;
+        }
+    </style>
+
+    {% if request.args.get('registered') == 'true' %}
+    <script>
+        alert("Registration successful! You can now log in.");
+    </script>
+    {% endif %}
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <img src="https://img.freepik.com/free-vector/time-management-concept-illustration_114360-2499.jpg?semt=ais_hybrid&w=740" 
+                 alt="Time Management Image" 
+                 style="width: 100%; max-width: 500px; border-radius: 10px;">
+        </div>
+        <div class="right-panel">
+            <div class="login-box">
+                <h2>Welcome Back</h2>
+                <div class="divider">OR LOG IN WITH USERNAME:</div>
+
+                <!-- Show flash messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <div class="flash-message">{{ message }}</div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+
+                <form action="/login" method="POST">
+                    <input type="text" name="username" placeholder="Username" required>
+                    <input type="password" name="password" placeholder="Password" required>
+                    <div class="options">
+                        <label><input type="checkbox" name="remember"> Keep me logged in</label>
+                        <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+                    </div>
+                    <button type="submit" class="login-btn">Log in</button>
+                </form>
+
+                <div class="footer-text">
+                    <span>Need Help?</span><br>
+                    <span>You are not a member? <a href="/register">Register</a></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

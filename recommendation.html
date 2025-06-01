@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Recommendation Results</title>
+   <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1400&q=80') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        header {
+            background-color: rgb(29, 146, 224);
+            padding: 20px;
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        h2 {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            margin: 40px auto;
+            max-width: 750px;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            padding: 25px;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: scale(1.01);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #34495e;
+        }
+
+        .toggle-content {
+            display: none;
+            margin-top: 15px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        ul {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        strong {
+            display: block;
+            margin-top: 10px;
+            color: #2c3e50;
+        }
+
+        p {
+            text-align: center;
+            color: white;
+            font-size: 18px;
+        }
+    </style>
+    <script>
+        function toggleSection(id) {
+            const section = document.getElementById(id);
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+</head>
+<body>
+    <header>
+        AI POWERED RESUME ANALYZER AND JOB MATCHING
+    </header>
+
+    <h2>Hello, {{ username }}</h2>
+
+    {% if job_roles %}
+    <div class="container">
+
+        <!-- Matched Roles Card -->
+        <div class="card">
+            <h3>Matched Roles</h3>
+            <button onclick="toggleSection('roles')">View</button>
+            <div id="roles" class="toggle-content">
+                <ul>
+                    {% for job in job_roles %}
+                        <li>{{ job.role }} – Accuracy: {{ job.accuracy }}%</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Study Materials Card -->
+        <div class="card">
+            <h3>📘 Study Materials</h3>
+            <button onclick="toggleSection('study')">View</button>
+            <div id="study" class="toggle-content">
+                {% for role, links in study_materials.items() %}
+                    <strong>{{ role }}</strong>
+                    <ul>
+                        {% for link in links %}
+                            <li><a href="{{ link }}" target="_blank">{{ link }}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Certification Courses Card -->
+        <div class="card">
+            <h3>📜 Certification Courses</h3>
+            <button onclick="toggleSection('certs')">View</button>
+            <div id="certs" class="toggle-content">
+                {% for role, links in certifications.items() %}
+                    <strong>{{ role }}</strong>
+                    <ul>
+                        {% for link in links %}
+                            <li><a href="{{ link }}" target="_blank">{{ link }}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Interview Tips Card -->
+        <div class="card">
+            <h3>💼 Interview Tips</h3>
+            <button onclick="toggleSection('interview')">View</button>
+            <div id="interview" class="toggle-content">
+                {% for role, links in interview_tips.items() %}
+                    <strong>{{ role }}</strong>
+                    <ul>
+                        {% for link in links %}
+                            <li><a href="{{ link }}" target="_blank">{{ link }}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+    {% else %}
+        <p>No matched roles found.</p>
+    {% endif %}
+
+</body>
+</html>

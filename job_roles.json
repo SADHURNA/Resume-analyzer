@@ -1,0 +1,50 @@
+[
+    {
+      "role": "Frontend Developer",
+      "skills": "html css javascript react ui ux web design frontend"
+    },
+    {
+      "role": "Backend Developer",
+      "skills": "python flask node.js api sql database backend server"
+    },
+    {
+      "role": "Full Stack Developer",
+      "skills": "html css javascript python flask node.js sql react frontend backend c"
+    },
+    {
+      "role": "Data Analyst",
+      "skills": "python sql excel tableau pandas data analysis visualization"
+    },
+    {
+      "role": "Machine Learning Engineer",
+      "skills": "python tensorflow sklearn pandas numpy machine learning ai model training"
+    },
+    {
+      "role": "DevOps Engineer",
+      "skills": "docker kubernetes aws ci cd linux git devops automation"
+    },
+    {
+      "role": "UI/UX Designer",
+      "skills": "ui ux figma adobe design wireframe user experience prototyping"
+    },
+    {
+      "role": "Network Engineer",
+      "skills": "tcp ip routing switching networking protocols cisco subnet firewall"
+    },
+    {
+      "role": "Cyber Security Analyst",
+      "skills": "cybersecurity ethical hacking network security threat analysis encryption malware"
+    },
+    {
+      "role": "Graphic Designer",
+      "skills": "photoshop illustrator indesign visual design typography branding canva"
+    },
+    {
+      "role": "Animator",
+      "skills": "2d animation 3d animation blender maya rigging motion graphics storytelling"
+    },
+    {
+      "role": "Content Creator",
+      "skills": "content writing seo social media blogging video editing storytelling branding"
+    }
+]

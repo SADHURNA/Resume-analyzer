@@ -1,0 +1,86 @@
+{
+  "Frontend Developer": [
+    {
+      "name": "Meta Front-End Developer",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/professional-certificates/meta-front-end-developer"
+    }
+  ],
+  "Backend Developer": [
+    {
+      "name": "Python for Web Developers",
+      "provider": "Udemy",
+      "link": "https://www.udemy.com/course/python-and-django-full-stack-web-developer-bootcamp/"
+    }
+  ],
+  "Full Stack Developer": [
+    {
+      "name": "Full Stack Web Developer Nanodegree",
+      "provider": "Udacity",
+      "link": "https://www.udacity.com/course/full-stack-web-developer-nanodegree--nd0044"
+    }
+  ],
+  "Data Analyst": [
+    {
+      "name": "Google Data Analytics",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/professional-certificates/google-data-analytics"
+    }
+  ],
+  "Machine Learning Engineer": [
+    {
+      "name": "Machine Learning by Andrew Ng",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/learn/machine-learning"
+    }
+  ],
+  "DevOps Engineer": [
+    {
+      "name": "DevOps on AWS",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/specializations/devops-on-aws"
+    }
+  ],
+  "UI/UX Designer": [
+    {
+      "name": "Google UX Design",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/professional-certificates/google-ux-design"
+    }
+  ],
+  "Network Engineer": [
+    {
+      "name": "Computer Networking",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/learn/computer-networking"
+    }
+  ],
+  "Cyber Security Analyst": [
+    {
+      "name": "Introduction to Cyber Security",
+      "provider": "edX",
+      "link": "https://www.edx.org/professional-certificate/rochester-institute-of-technology-cybersecurity"
+    }
+  ],
+  "Graphic Designer": [
+    {
+      "name": "Graphic Design Specialization",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/specializations/graphic-design"
+    }
+  ],
+  "Animator": [
+    {
+      "name": "Character Animation Basics",
+      "provider": "Udemy",
+      "link": "https://www.udemy.com/course/learn-3d-animation-blender-beginner-course"
+    }
+  ],
+  "Content Creator": [
+    {
+      "name": "Content Marketing Certification",
+      "provider": "HubSpot Academy",
+      "link": "https://academy.hubspot.com/courses/content-marketing"
+    }
+  ]
+}

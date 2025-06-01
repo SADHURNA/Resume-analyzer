@@ -1,0 +1,650 @@
+import os
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
+from werkzeug.utils import secure_filename
+from utils.parser import extract_text_from_pdf, extract_text_from_docx
+from skill_extractor import extract_skills_qualifications
+from matcher import match_roles
+import secrets
+import mysql.connector
+from werkzeug.security import generate_password_hash, check_password_hash
+from recommender import analyze_resume
+from recommender import recommend_study_materials, recommend_certification_courses, recommend_interview_tips
+
+# === Flask Setup ===
+app = Flask(__name__)
+app.secret_key = secrets.token_hex(16)
+
+db_host = "localhost"
+db_user = "root"
+db_password = ""
+db_name = "flask_login_db"
+
+UPLOAD_FOLDER = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+ALLOWED_EXTENSIONS = {'pdf', 'docx'}
+
+# Ensure upload folder exists
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# === DB Connection ===
+def get_db_connection():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="",
+        database="flask_login_db"
+    )
+
+
+# === Helper to check file type ===
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# === Resume Text Extractor ===
+def extract_text_from_resume(filepath):
+    if filepath.endswith('.pdf'):
+        return extract_text_from_pdf(filepath)
+    elif filepath.endswith('.docx'):
+        return extract_text_from_docx(filepath)
+    else:
+        return "sample text from resume"
+
+# === Login Page ===
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM users WHERE username=%s", (username,))
+        user = cursor.fetchone()
+
+        if user and check_password_hash(user['password'], password):
+            session['username'] = user['username']
+            print("Login successful")  # DEBUG
+            cursor.close()
+            conn.close()
+            return redirect(url_for('home'))
+        else:
+            flash("Invalid credentials", "danger")
+            print("Login failed")  # DEBUG
+            cursor.close()
+            conn.close()
+
+    return render_template('login.html')
+
+# === Register Page ===
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+
+        # Basic password match check
+        if password != confirm_password:
+            flash('Passwords do not match!', 'danger')
+            return redirect(url_for('register'))
+
+        # Hash the password
+        hashed_password = generate_password_hash(password)
+
+        # Connect to DB
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+
+            # Check if username already exists
+            cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+            existing_user = cursor.fetchone()
+            if existing_user:
+                flash('Username already exists. Please choose another.', 'warning')
+                cursor.close()
+                conn.close()
+                return redirect(url_for('register'))
+
+            # Insert new user into database
+            cursor.execute(
+                "INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
+                (username, email, hashed_password)
+            )
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+
+            flash('Account created successfully! Please login.', 'success')
+            return redirect(url_for('login'))  # Ensure user is redirected to the login page after registration
+        else:
+            flash('Database connection error', 'danger')
+
+    return render_template('register.html')
+# === Home Page ===
+@app.route('/index', methods=['GET', 'POST'])
+def home():
+    print("Inside /home route")
+    print("Session username:", session.get('username'))
+    if 'username' not in session:
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        if 'resume' not in request.files:
+            return render_template("index.html",
+                       username=session["username"],
+                       results=None,
+                       skills=None,
+                       qualifications=None,
+                       roles=None,
+                       error="No resume part in request")
+
+        file = request.files['resume']
+        if file.filename == '':
+            return render_template('index.html',
+                                   username=session['username'],
+                                   results=None,
+                                   skills=None,
+                                   qualifications=None,
+                                   roles=None,
+                                   error="No selected file")
+
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+
+            resume_text = extract_text_from_resume(filepath)
+            if not resume_text.strip():
+               return render_template('index.html',
+                                       username=session['username'],
+                                       results=None,
+                                       skills=None,
+                                       qualifications=None,
+                                       roles=None,
+                                       error="Resume is empty or unreadable")
+            
+            skills, qualifications = extract_skills_qualifications(resume_text)
+            results = match_roles(skills, qualifications)
+# Match job roles
+            matched_roles = match_roles(skills, qualifications)
+
+            # Recommendation modules
+            study_materials = recommend_study_materials(matched_roles)
+            certifications = recommend_certification_courses(matched_roles)
+            interview_tips = recommend_interview_tips(matched_roles)
+
+            # Combine everything into one result dictionary
+            result_data = {
+                'matched_roles': matched_roles,
+                'study_materials': study_materials,
+                'certifications': certifications,
+                'interview_tips': interview_tips
+            }
+
+            # Pass all data to template
+           
+            # Pass all data to template (FIXED)
+            return render_template('index.html', 
+           username=session['username'],
+           skills=skills, 
+           qualifications=qualifications, 
+           results=result_data)  # <== This is the important fix
+
+
+                   
+        return render_template('index.html',
+                                   username=session['username'],
+                                   results=results,
+                                   skills=skills,
+                                   qualifications=qualifications,
+                                   roles=results.get('eligible_roles', []) if results else None,
+                                   error=None)
+
+    # For GET request
+    return render_template('index.html',
+                           username=session['username'],
+                           results=None,
+                           skills=None,
+                           qualifications=None,
+                           roles=None,
+                           error=None)
+# === Logout ===
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('login'))
+
+# === Forgot Password ===
+@app.route('/forgot_password')
+def forgot_password():
+    return render_template('forgot_password.html')
+
+# === Resume Analyze API ===
+@app.route('/analyze_resume', methods=['POST'])
+def analyze_resume_route():
+    data = request.get_json()
+    resume_text = data.get('resume_text', '')
+
+    if not resume_text.strip():
+        return jsonify({"error": "Resume content is empty"}), 400
+
+    skills, qualifications = extract_skills_qualifications(resume_text)
+    results = match_roles(skills, qualifications)
+
+    return jsonify({
+        "skills": skills,
+        "qualifications": qualifications,
+        "results": results
+    })
+@app.route('/recommend', methods=['POST'])
+def recommend():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    if 'resume' not in request.files:
+        return render_template('recommendation.html', username=session['username'], error="No file part")
+
+    file = request.files['resume']
+    if file.filename == '':
+        return render_template('recommendation.html', username=session['username'], error="No selected file")
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        resume_text = extract_text_from_resume(filepath)
+        if not resume_text.strip():
+            return render_template('recommendation.html', username=session['username'], error="Resume is empty or unreadable")
+
+        # 🔍 Analyze resume
+        result = analyze_resume(resume_text)
+
+        if "error" in result:
+            return render_template('recommendation.html', username=session['username'], error=result["error"])
+
+        # ✅ Pass specific items to template
+        return render_template(
+            "recommendation.html",
+            username=session['username'],
+            matched_roles=result["job_roles"],
+            study_materials=result["study_materials"],
+            certifications=result["certifications"],
+            interview_tips=result["interview_tips"]
+        )
+
+    return render_template('recommendation.html', username=session['username'], error="Invalid file type. Upload PDF or DOCX.")
+@app.route('/')
+def index():
+    return redirect(url_for('login'))  # or 'register' if you prefer
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+<h1>recommentor.py</h1>
+# recommender.py
+
+import json
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# Load helper modules
+from skill_extractor import extract_skills_qualifications
+from matcher import match_roles
+
+def load_json_data(filepath):
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error loading {filepath}: {e}")
+        return {}
+
+# Load datasets
+job_roles = load_json_data('data/job_roles.json')
+study_materials = load_json_data('data/study_materials.json')
+certifications = load_json_data('data/certifications.json')
+interview_tips = load_json_data('data/interview_tips.json')
+
+
+def analyze_resume(resume_text):
+    if not resume_text.strip():
+        return {"error": "Resume is empty or contains only stop words."}
+
+    # Prepare job role descriptions for TF-IDF
+    all_roles = [
+        job.get("role", "Unknown Role") + " - " + ", ".join(job.get("skills", []))
+        for job in job_roles if isinstance(job, dict)
+    ]
+
+    # Create TF-IDF matrix
+    tfidf = TfidfVectorizer()
+    try:
+        role_vectors = tfidf.fit_transform(all_roles)
+        resume_vector = tfidf.transform([resume_text])
+    except ValueError:
+        return {"error": "Unable to process resume. It may contain only stop words."}
+
+    # Calculate cosine similarity between resume and each job role
+    similarities = cosine_similarity(resume_vector, role_vectors).flatten()
+    matched_jobs = []
+
+    for idx, score in enumerate(similarities):
+        if score > 0.1:
+            matched_jobs.append({
+                "role": job_roles[idx].get("role", "Unknown Role"),
+                "accuracy": round(score * 100, 2)
+            })
+
+    # Sort jobs by similarity score (accuracy)
+    matched_jobs = sorted(matched_jobs, key=lambda x: x["accuracy"], reverse=True)
+
+    matched_roles = [job["role"] for job in matched_jobs]
+
+    # Collect all matched skills
+    matched_skills = set()
+    for job in job_roles:
+        if job.get("role") in matched_roles:
+            for skill in job.get("skills", []):
+                matched_skills.add(skill.lower())
+
+    # Generate recommendations based on matched skills
+    study_recommendations = []
+    cert_recommendations = []
+    interview_tip_links = []
+
+    for skill in matched_skills:
+        study_recommendations.extend(study_materials.get(skill, []))
+        cert_recommendations.extend(certifications.get(skill, []))
+        interview_tip_links.extend(interview_tips.get(skill, []))
+
+    return {
+        "job_roles": matched_jobs,
+        "study_materials": sorted(set(study_recommendations)),
+        "certifications": sorted(set(cert_recommendations)),
+        "interview_tips": sorted(set(interview_tip_links))
+    }
+
+# recommender.py
+
+def recommend_study_materials(job_roles):
+    material_links = {
+        'Data Scientist': [
+            'https://www.kaggle.com/learn',
+            'https://www.coursera.org/learn/machine-learning',
+            'https://towardsdatascience.com/'
+        ],
+        'Software Developer': [
+            'https://www.geeksforgeeks.org/data-structures/',
+            'https://www.w3schools.com/java/',
+            'https://developer.mozilla.org/en-US/docs/Web/JavaScript'
+        ],
+        'Web Developer': [
+            'https://www.freecodecamp.org/learn/',
+            'https://www.w3schools.com/html/',
+            'https://css-tricks.com/'
+        ],
+        'AI Engineer': [
+            'https://www.udacity.com/course/intro-to-artificial-intelligence--cs271',
+            'https://www.deeplearning.ai/',
+            'https://machinelearningmastery.com/'
+        ],
+        'Cloud Engineer': [
+            'https://www.aws.training/',
+            'https://learn.microsoft.com/en-us/training/azure/',
+            'https://cloud.google.com/training'
+        ],
+    }
+
+    recommended = []
+    for role in job_roles:
+        if role in material_links:
+            recommended.extend(material_links[role])
+
+    return list(set(recommended))  # Remove duplicates
+
+
+def recommend_certification_courses(job_roles):
+    course_links = {
+        'Data Scientist': [
+            'datascience :https://www.coursera.org/specializations/jhu-data-science',
+            'https://www.edx.org/professional-certificate/harvardx-data-science'
+        ],
+        'Software Developer': [
+            'https://www.udemy.com/course/the-complete-java-developer-course/',
+            'https://www.edx.org/learn/software-development'
+        ],
+        'Web Developer': [
+            'https://www.coursera.org/specializations/web-design',
+            'https://www.udemy.com/course/the-complete-web-developer-zero-to-mastery/'
+        ],
+        'AI Engineer': [
+            'https://www.coursera.org/ai',
+            'https://www.edx.org/learn/artificial-intelligence'
+        ],
+        'Cloud Engineer': [
+            'https://www.coursera.org/professional-certificates/google-cloud',
+            'https://www.udemy.com/course/aws-certified-solutions-architect-associate/'
+        ],
+    }
+
+    recommended = []
+    for role in job_roles:
+        if role in course_links:
+            recommended.extend(course_links[role])
+
+    return list(set(recommended))
+
+
+def recommend_interview_tips(job_roles):
+    tips_links = {
+        'common': [
+            'https://www.indiabix.com/aptitude/questions-and-answers/',
+            'https://www.geeksforgeeks.org/most-frequently-asked-interview-questions/',
+            'https://www.interviewbit.com/hr-interview-questions/'
+        ],
+        'Data Scientist': [
+            'https://www.kdnuggets.com/2020/07/data-science-interview-questions.html'
+        ],
+        'Software Developer': [
+            'https://www.interviewbit.com/software-engineering-interview-questions/'
+        ],
+        'Web Developer': [
+            'https://careerfoundry.com/en/blog/web-development/web-developer-interview-questions/'
+        ],
+        'AI Engineer': [
+            'https://towardsdatascience.com/ai-machine-learning-interview-questions-answers-2022-8b4a92e1f6fc'
+        ],
+        'Cloud Engineer': [
+            'https://intellipaat.com/blog/interview-question/cloud-engineer-interview-questions/'
+        ],
+    }
+
+    recommended = list(tips_links['common'])  # Always include common tips
+
+    for role in job_roles:
+        if role in tips_links:
+            recommended.extend(tips_links[role])
+
+    return list(set(recommended))  # Remove duplicates
+
+    
+    <h1>skill_extractor.py</h1>
+    import spacy
+
+# Load spaCy model
+nlp = spacy.load("en_core_web_sm")
+
+# Sample skill and qualification keywords (you can expand this)
+SKILL_KEYWORDS = ['python', 'java', 'html', 'css', 'javascript', 'node.js', 'c', 'sql', 'machine learning', 'flask', 'django']
+QUALIFICATIONS_KEYWORDS = ['b.e', 'b.tech', 'm.tech', 'mca', 'b.sc', 'msc', 'diploma']
+
+def extract_skills_qualifications(text):
+    text = text.lower()
+    doc = nlp(text)
+
+    skills = []
+    qualifications = []
+
+    for token in doc:
+        if token.text in SKILL_KEYWORDS and token.text not in skills:
+            skills.append(token.text)
+        if token.text in QUALIFICATIONS_KEYWORDS and token.text not in qualifications:
+            qualifications.append(token.text)
+
+    return skills, qualifications
+
+
+
+
+recommender.hmtl 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recommendation Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f4f4f4;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            width: 300px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .toggle-content {
+            display: none;
+            margin-top: 10px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        a {
+            color: #007bff;
+        }
+    </style>
+    <script>
+        function toggleSection(id) {
+            const section = document.getElementById(id);
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+</head>
+<body>
+
+    <h2>Hello, {{ username }}</h2>
+
+    {% if job_roles %}
+    <div class="container">
+
+        <!-- Matched Roles Card -->
+        <div class="card">
+            <h3>Matched Roles</h3>
+            <button onclick="toggleSection('roles')">View</button>
+            <div id="roles" class="toggle-content">
+                <ul>
+                    {% for job in job_roles %}
+                        <li>{{ job.role }} – Accuracy: {{ job.accuracy }}%</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Study Materials Card -->
+        <div class="card">
+            <h3>📘 Study Materials</h3>
+            <button onclick="toggleSection('study')">View</button>
+            <div id="study" class="toggle-content">
+                {% for role, links in study_materials.items() %}
+                    <strong>{{ role }}</strong>
+                    <ul>
+                        {% for link in links %}
+                            <li><a href="{{ link }}" target="_blank">{{ link }}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Certification Courses Card -->
+        <div class="card">
+            <h3>📜 Certification Courses</h3>
+            <button onclick="toggleSection('certs')">View</button>
+            <div id="certs" class="toggle-content">
+                {% for role, links in certifications.items() %}
+                    <strong>{{ role }}</strong>
+                    <ul>
+                        {% for link in links %}
+                            <li><a href="{{ link }}" target="_blank">{{ link }}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Interview Tips Card -->
+        <div class="card">
+            <h3>💼 Interview Tips</h3>
+            <button onclick="toggleSection('interview')">View</button>
+            <div id="interview" class="toggle-content">
+                {% for role, links in interview_tips.items() %}
+                    <strong>{{ role }}</strong>
+                    <ul>
+                        {% for link in links %}
+                            <li><a href="{{ link }}" target="_blank">{{ link }}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+    {% else %}
+        <p>No matched roles found.</p>
+    {% endif %}
+
+</body>
+</html>
+

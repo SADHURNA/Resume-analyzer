@@ -1,0 +1,106 @@
+{
+  "Frontend Developer": [
+    {
+      "title": "HTML & CSS Crash Course",
+      "link": "https://www.freecodecamp.org/learn/responsive-web-design/"
+    },
+    {
+      "title": "JavaScript Basics",
+      "link": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide"
+    }
+  ],
+  "Backend Developer": [
+    {
+      "title": "Flask Mega-Tutorial",
+      "link": "https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world"
+    },
+    {
+      "title": "SQL for Beginners",
+      "link": "https://www.w3schools.com/sql/"
+    }
+  ],
+  "Full Stack Developer": [
+    {
+      "title": "Full Stack Web Dev Roadmap",
+      "link": "https://www.theodinproject.com/"
+    }
+  ],
+  "Data Analyst": [
+    {
+      "title": "Data Analysis with Pandas",
+      "link": "https://pandas.pydata.org/docs/user_guide/index.html"
+    },
+    {
+      "title": "Excel for Data Analysis",
+      "link": "https://www.coursera.org/learn/excel-data-analysis"
+    }
+  ],
+  "Machine Learning Engineer": [
+    {
+      "title": "Machine Learning Crash Course",
+      "link": "https://developers.google.com/machine-learning/crash-course"
+    }
+  ],
+  "DevOps Engineer": [
+    {
+      "title": "Docker & Kubernetes Guide",
+      "link": "https://kubernetes.io/docs/tutorials/"
+    }
+  ],
+  "UI/UX Designer": [
+    {
+      "title": "Figma for Beginners",
+      "link": "https://help.figma.com/hc/en-us/articles/360040514373-Figma-for-Beginners"
+    }
+  ],
+  "Network Engineer": [
+    {
+      "title": "Computer Networking Fundamentals",
+      "link": "https://www.geeksforgeeks.org/computer-network-tutorials/"
+    },
+    {
+      "title": "Cisco Packet Tracer Tutorials",
+      "link": "https://www.netacad.com/courses/packet-tracer"
+    }
+  ],
+  "Cyber Security Analyst": [
+    {
+      "title": "Cybersecurity Basics",
+      "link": "https://www.coursera.org/learn/intro-cyber-security"
+    },
+    {
+      "title": "OWASP Top 10 Guide",
+      "link": "https://owasp.org/www-project-top-ten/"
+    }
+  ],
+  "Graphic Designer": [
+    {
+      "title": "Graphic Design for Beginners",
+      "link": "https://www.coursera.org/specializations/graphic-design"
+    },
+    {
+      "title": "Learn Adobe Illustrator",
+      "link": "https://www.udemy.com/course/adobe-illustrator-course/"
+    }
+  ],
+  "Animator": [
+    {
+      "title": "Blender 3D Animation",
+      "link": "https://www.blender.org/support/tutorials/"
+    },
+    {
+      "title": "Intro to Animation",
+      "link": "https://www.coursera.org/learn/animation"
+    }
+  ],
+  "Content Creator": [
+    {
+      "title": "YouTube Content Creation Guide",
+      "link": "https://creatoracademy.youtube.com/"
+    },
+    {
+      "title": "Content Strategy for Professionals",
+      "link": "https://www.coursera.org/learn/content-strategy"
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "Frontend Developer": [
+    {
+      "name": "Meta Front-End Developer",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/professional-certificates/meta-front-end-developer"
+    },
+    {
+      "name": "Responsive Web Design",
+      "provider": "freeCodeCamp",
+      "link": "https://www.freecodecamp.org/learn/responsive-web-design/"
+    }
+  ],
+  "Backend Developer": [
+    {
+      "name": "Python for Web Developers",
+      "provider": "Udemy",
+      "link": "https://www.udemy.com/course/python-and-django-full-stack-web-developer-bootcamp/"
+    },
+    {
+      "name": "Server-side Development with Node.js",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/learn/server-side-nodejs"
+    }
+  ],
+  "Full Stack Developer": [
+    {
+      "name": "Full Stack Web Developer Nanodegree",
+      "provider": "Udacity",
+      "link": "https://www.udacity.com/course/full-stack-web-developer-nanodegree--nd0044"
+    },
+    {
+      "name": "The Web Developer Bootcamp",
+      "provider": "Udemy",
+      "link": "https://www.udemy.com/course/the-web-developer-bootcamp/"
+    }
+  ],
+  "Data Analyst": [
+    {
+      "name": "Google Data Analytics",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/professional-certificates/google-data-analytics"
+    },
+    {
+      "name": "Data Analysis with Python",
+      "provider": "freeCodeCamp",
+      "link": "https://www.freecodecamp.org/learn/data-analysis-with-python"
+    }
+  ],
+  "Machine Learning Engineer": [
+    {
+      "name": "Machine Learning by Andrew Ng",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/learn/machine-learning"
+    },
+    {
+      "name": "Intro to Machine Learning",
+      "provider": "Kaggle",
+      "link": "https://www.kaggle.com/learn/intro-to-machine-learning"
+    }
+  ],
+  "DevOps Engineer": [
+    {
+      "name": "DevOps on AWS",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/specializations/devops-on-aws"
+    },
+    {
+      "name": "Learn DevOps: CI/CD with Jenkins",
+      "provider": "Udemy",
+      "link": "https://www.udemy.com/course/learn-devops-ci-cd-with-jenkins-using-pipelines-and-docker/"
+    }
+  ],
+  "UI/UX Designer": [
+    {
+      "name": "Google UX Design",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/professional-certificates/google-ux-design"
+    },
+    {
+      "name": "User Experience Design Essentials",
+      "provider": "Udemy",
+      "link": "https://www.udemy.com/course/ui-ux-web-design-using-adobe-xd/"
+    }
+  ],
+  "Network Engineer": [
+    {
+      "name": "Computer Networking",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/learn/computer-networking"
+    },
+    {
+      "name": "Cisco Networking Basics",
+      "provider": "Cisco Networking Academy",
+      "link": "https://www.netacad.com/courses/packet-tracer"
+    }
+  ],
+  "Cyber Security Analyst": [
+    {
+      "name": "Introduction to Cyber Security",
+      "provider": "edX",
+      "link": "https://www.edx.org/professional-certificate/rochester-institute-of-technology-cybersecurity"
+    },
+    {
+      "name": "The Complete Cyber Security Course",
+      "provider": "Udemy",
+      "link": "https://www.udemy.com/course/the-complete-cyber-security-course/"
+    }
+  ],
+  "Graphic Designer": [
+    {
+      "name": "Graphic Design Specialization",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/specializations/graphic-design"
+    },
+    {
+      "name": "Adobe Illustrator for Beginners",
+      "provider": "Udemy",
+      "link": "https://www.udemy.com/course/adobe-illustrator-course/"
+    }
+  ],
+  "Animator": [
+    {
+      "name": "Character Animation Basics",
+      "provider": "Udemy",
+      "link": "https://www.udemy.com/course/learn-3d-animation-blender-beginner-course"
+    },
+    {
+      "name": "Introduction to 3D Animation",
+      "provider": "Coursera",
+      "link": "https://www.coursera.org/learn/3d-animation"
+    }
+  ],
+  "Content Creator": [
+    {
+      "name": "Content Marketing Certification",
+      "provider": "HubSpot Academy",
+      "link": "https://academy.hubspot.com/courses/content-marketing"
+    },
+    {
+      "name": "YouTube Masterclass",
+      "provider": "Udemy",
+      "link": "https://www.udemy.com/course/youtube-masterclass-complete-guide-to-youtube-success/"
+    }
+  ]
+}

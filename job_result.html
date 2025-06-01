@@ -1,0 +1,170 @@
+import os
+from flask import Flask, render_template, request, jsonify, redirect, url_for,session, flash
+from werkzeug.utils import secure_filename
+from utils.parser import extract_text_from_pdf, extract_text_from_docx
+from skill_extractor import extract_skills_qualifications
+from matcher import match_roles
+import secrets
+import mysql.connector
+#from config import db_host, db_user, db_password, db_name
+   
+
+
+# === Flask Setup ===
+app = Flask(__name__)
+
+db_host = "localhost"
+db_user = "root"
+db_password = "root"
+db_name = "flask_login_db"
+
+app.secret_key = secrets.token_hex(16)
+
+UPLOAD_FOLDER = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+ALLOWED_EXTENSIONS = {'pdf', 'docx'}
+
+# Ensure upload folder exists
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# === Helper to check file type ===
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# === Resume Text Extractor ===
+def extract_text_from_resume(filepath):
+    if filepath.endswith('.pdf'):
+        return extract_text_from_pdf(filepath)
+    elif filepath.endswith('.docx'):
+        return extract_text_from_docx(filepath)
+    else:
+        return ""
+
+@app.route('/')
+def home():
+    if 'username' in session:
+        return render_template('index.html', username=session['username'])
+    return redirect(url_for('login'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM users WHERE username=%s AND password=%s", (username, password))
+        user = cursor.fetchone()
+
+        if user:
+            session['username'] = user['username']
+            return redirect(url_for('home'))
+        else:
+            flash("Invalid credentials", "danger")
+
+        cursor.close()
+        conn.close()
+
+    return render_template('login.html')
+
+# ✅ Route for showing Register page
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+
+        # Basic validations
+        if password != confirm_password:
+            flash('Passwords do not match!', 'danger')
+            return redirect(url_for('register'))
+        
+        # You can add database saving logic here
+
+        flash('Account created successfully!', 'success')
+        return redirect(url_for('login'))
+
+    return render_template('register.html')  # your HTML f
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('login'))
+@app.route('/forgot_password')
+def forgot_password():
+    # You can render a template for the forgot password page or perform other actions
+    return render_template('forgot_password.html')
+
+# === Home Page with Upload ===
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        if 'resume' not in request.files:
+            return render_template('index.html', error="No file part")
+
+        file = request.files['resume']
+        if file.filename == '':
+            return render_template('index.html', error="No selected file")
+
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+
+            # Step 1: Extract text
+            resume_text = extract_text_from_resume(filepath)
+            if not resume_text.strip():
+                return render_template('index.html', error="Resume is empty or unreadable")
+
+            # Step 2: Extract skills and qualifications
+            skills, qualifications = extract_skills_qualifications(resume_text)
+
+            # Step 3: Match roles
+            results = match_roles(skills, qualifications)
+
+            return render_template('index.html', skills=skills, qualifications=qualifications, results=results)
+
+        return render_template('index.html', error="Invalid file type. Upload PDF or DOCX.")
+
+    return render_template('index.html')
+
+# === API for raw text analyze ===
+@app.route('/analyze_resume', methods=['POST'])
+def analyze_resume_route():
+    data = request.get_json()
+    resume_text = data.get('resume_text', '')
+
+    if not resume_text.strip():
+        return jsonify({"error": "Resume content is empty"}), 400
+
+    skills, qualifications = extract_skills_qualifications(resume_text)
+    results = match_roles(skills, qualifications)
+
+    return jsonify({
+        "skills": skills,
+        "qualifications": qualifications,
+        "results": results
+    })
+
+
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'
+
+# DB connection
+def get_db_connection():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="",  # empty password if phpMyAdmin allows root login without password
+        database="flask_login"
+    )
+
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
